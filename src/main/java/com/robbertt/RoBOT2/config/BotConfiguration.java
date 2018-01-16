@@ -19,4 +19,10 @@ public interface BotConfiguration extends org.aeonbits.owner.Config {
     String adminRole();
     @DefaultValue("RoBOT II Moderator")
     String modRole();
+    @org.aeonbits.owner.Config.DefaultValue("0")
+    @org.aeonbits.owner.Config.Key("apikey")
+    String apiKey();
+    @org.aeonbits.owner.Config.DefaultValue("0")
+    @org.aeonbits.owner.Config.Key("wolframappid")
+    String wolframappid();
 }

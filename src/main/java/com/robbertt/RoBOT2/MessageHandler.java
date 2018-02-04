@@ -8,11 +8,16 @@ import com.wolfram.alpha.*;
 import jdk.nashorn.internal.parser.JSONParser;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
+import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.PermissionOverride;
+import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.core.exceptions.HierarchyException;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.core.managers.GuildManager;
+import net.dv8tion.jda.core.utils.PermissionUtil;
 
 import java.awt.*;
 import java.io.BufferedReader;
@@ -21,9 +26,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -93,11 +96,38 @@ public class MessageHandler extends ListenerAdapter {
 
         }
         if(e.getMessage().getRawContent().toLowerCase().startsWith("rolecolor")) {
+            if(!PermissionUtil.checkPermission(e.getMember(), Permission.MANAGE_SERVER)) {
+                e.getTextChannel().sendMessage(e.getAuthor().getAsMention() + ":no_entry: You don't have permission. DENIED").queue();
+                return;
+            }
             String[] split = e.getMessage().getRawContent().split(" ");
             if(split.length < 2) {
-                
+                java.util.List<Role> roleList = e.getMember().getRoles();
+                    e.getTextChannel().sendMessage(e.getAuthor().getAsMention() + " You can modify the colors for the following roles:").queue();
+                    roleList.forEach(role -> {
+                        if(e.getGuild().getMembersWithRoles(role).size() == 1) {
+                            e.getTextChannel().sendMessage(role.getName() + " | Id: " + role.getId()).queue();
+                        }
+                    });
+                e.getTextChannel().sendMessage("Command format: rolecolor <id> <hex color>").queue();
+                e.getTextChannel().sendMessage("You can select a hex color here: https://www.hexcolortool.com/ Hex colors are in the format of #e97777").queue();
+                }
+            if(split.length == 3) {
+                java.util.List<Role> roleList = e.getMember().getRoles();
+                if(e.getGuild().getMembersWithRoles(e.getGuild().getRoleById(split[1])).size() == 1) {
+                    try {
+                        e.getGuild().getRoleById(split[1]).getManager().setColor(Color.decode(split[2])).queue();
+                    }
+                    catch(HierarchyException e1) {
+                        e.getTextChannel().sendMessage(e.getAuthor().getAsMention() + " :no_entry_sign: This role is too powerful for me to modify. Try asking an admin for help.").queue();
+                    }
+                    finally {
+                        e.getTextChannel().sendMessage(e.getAuthor().getAsMention() + " Role color changed completed.").queue();
+                    }
+                }
+
+            }
             }
         }
 
     }
-}
